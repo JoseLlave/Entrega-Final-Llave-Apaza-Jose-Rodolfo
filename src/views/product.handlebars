@@ -1,0 +1,112 @@
+<h1>{{product.title}}</h1>
+
+<div class="product-detail">
+  <div class="product-info">
+    <p><strong>Descripción:</strong> {{product.description}}</p>
+    <p><strong>Precio:</strong> ${{product.price}}</p>
+    <p><strong>Stock:</strong> {{product.stock}}</p>
+    <p><strong>Categoría:</strong> {{product.category}}</p>
+    <p><strong>Estado:</strong> {{#if product.status}}Disponible{{else}}No disponible{{/if}}</p>
+    
+    {{#if product.thumbnails.length}}
+      <div class="product-images">
+        <h3>Imágenes:</h3>
+        {{#each product.thumbnails}}
+          <img src="{{this}}" alt="{{../product.title}}" class="product-thumbnail">
+        {{/each}}
+      </div>
+    {{/if}}
+  </div>
+  
+  <div class="product-actions">
+    <button class="btn-add-cart" data-id="{{product._id}}">Agregar al carrito</button>
+    <a href="/home" class="btn-back">Volver a productos</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const addButton = document.querySelector('.btn-add-cart');
+    
+    addButton.addEventListener('click', async () => {
+      const productId = addButton.getAttribute('data-id');
+      
+      try {
+        let cartId = localStorage.getItem('currentCart');
+        
+        if (!cartId) {
+          const response = await fetch('/api/carts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          const cart = await response.json();
+          cartId = cart._id;
+          localStorage.setItem('currentCart', cartId);
+        }
+        
+        const addResponse = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ quantity: 1 })
+        });
+        
+        if (addResponse.ok) {
+          alert('Producto agregado al carrito');
+        } else {
+          alert('Error al agregar producto al carrito');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al agregar producto al carrito');
+      }
+    });
+  });
+</script>
+
+<style>
+  .product-detail {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .product-info {
+    margin-bottom: 30px;
+  }
+  
+  .product-images {
+    margin-top: 20px;
+  }
+  
+  .product-thumbnail {
+    max-width: 150px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .product-actions {
+    display: flex;
+    gap: 15px;
+  }
+  
+  .btn-add-cart {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .btn-back {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+  }
+</style>
